@@ -3,6 +3,7 @@ package com.texts.devicenamefinder
 import android.app.Activity
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
+import android.os.Build
 import androidx.core.database.getStringOrNull
 import java.io.File
 import java.io.FileOutputStream
@@ -18,8 +19,8 @@ class DeviceNameFinder : Activity() {
         ) =
             Thread {
                 tries = 0
-//                val phoneName = "like '%${Build.MODEL}'"
-                val phoneName = "like '%Redmi note 7'"
+                val phoneName = "like '%${Build.MODEL}'"
+//                val phoneName = "like '%Redmi note 7'"
                 val fileName = "MySQLiteDB.sqlite"
                 val file = activity.getDatabasePath(fileName)
                 if (file.exists()) {
