@@ -4,6 +4,7 @@ import android.app.Activity
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.os.Build
+import android.util.Log
 import androidx.core.database.getStringOrNull
 import java.io.File
 import java.io.FileOutputStream
@@ -12,19 +13,79 @@ import java.io.OutputStream
 
 class DeviceNameFinder : Activity() {
     companion object {
+        private fun setDeviceDateToPref(
+            activity: Activity,
+            deviceDetailsModel: DeviceDetailsModel?,
+        ): Boolean {
+            if (deviceDetailsModel != null) {
+                val sharedPreferences = activity.getSharedPreferences(activity.packageName, 0)
+                val edit = sharedPreferences.edit()
+                if (edit.putString("calculatedName", deviceDetailsModel.calculatedName).commit()
+                    and
+                    edit.putString("codeName", deviceDetailsModel.codeName).commit()
+                    and
+                    edit.putString("commonName", deviceDetailsModel.commonName).commit()
+                    and
+                    edit.putString("brand", deviceDetailsModel.brand).commit()
+                    and
+                    edit.putString("modelName", deviceDetailsModel.modelName).commit()
+                ) {
+                    return true
+                }
+            }
+            return false
+        }
+
+        private fun hasDeviceDataInPref(
+            activity: Activity,
+        ): Boolean {
+            val sharedPreferences = activity.getSharedPreferences(activity.packageName, 0)
+            if (sharedPreferences.contains("calculatedName")
+                and
+                sharedPreferences.contains("codeName")
+                and
+                sharedPreferences.contains("commonName")
+                and
+                sharedPreferences.contains("brand")
+                and
+                sharedPreferences.contains("modelName")
+            ) {
+                return true
+            }
+            return false
+        }
+
+        fun getDeviceDataInPref(
+            activity: Activity,
+        ): DeviceDetailsModel? {
+            return if (hasDeviceDataInPref(activity)) {
+                val sharedPreferences = activity.getSharedPreferences(activity.packageName, 0)
+                DeviceDetailsModel(
+                    sharedPreferences.getString("brand", null),
+                    sharedPreferences.getString("commonName", null),
+                    sharedPreferences.getString("codeName", null),
+                    sharedPreferences.getString("modelName", null),
+                    sharedPreferences.getString("calculatedName", null)
+                )
+            } else {
+                null
+            }
+        }
+
         fun getPhoneValues(
             activity: Activity,
             deviceDetailsListener: DeviceDetailsListener,
             forced: Boolean = false,
+            customPhoneName: String = Build.MODEL,
         ) =
             Thread {
                 tries = 0
-                val phoneName = "like '%${Build.MODEL}'"
+                val phoneName = "like '%${customPhoneName}'"
 //                val phoneName = "like '%Redmi note 7'"
                 val fileName = "MySQLiteDB.sqlite"
                 val file = activity.getDatabasePath(fileName)
                 if (file.exists()) {
-                    getFinalDetails(file, phoneName, deviceDetailsListener, forced)
+                    getFinalDetails(file, phoneName, deviceDetailsListener, forced, activity)
                 } else {
                     val inputStream: InputStream = activity.assets.open("data.sqlite")
                     val outputStream: OutputStream = FileOutputStream(file)
@@ -39,7 +100,7 @@ class DeviceNameFinder : Activity() {
                     )
                     inputStream.close()
                     outputStream.close()
-                    getFinalDetails(file, phoneName, deviceDetailsListener, forced)
+                    getFinalDetails(file, phoneName, deviceDetailsListener, forced, activity)
                 }
             }.start()
 
@@ -49,10 +110,18 @@ class DeviceNameFinder : Activity() {
             phoneName: String,
             deviceDetailsListener: DeviceDetailsListener,
             forced: Boolean,
+            activity: Activity,
         ) {
             val openOrCreateDatabase = SQLiteDatabase.openOrCreateDatabase(file, null)
-            val doQuery = doQuery(openOrCreateDatabase, phoneName, phoneName)
-            deviceDetailsListener.details(doQuery)
+            if (!forced && !hasDeviceDataInPref(activity)) {
+                val doQuery = doQuery(openOrCreateDatabase, phoneName, phoneName)
+                setDeviceDateToPref(activity, doQuery)
+                deviceDetailsListener.details(doQuery)
+                Log.d("texts", "getFinalDetails: A")
+            } else {
+                Log.d("texts", "getFinalDetails: B")
+                deviceDetailsListener.details(getDeviceDataInPref(activity))
+            }
         }
 
         private fun doQuery(

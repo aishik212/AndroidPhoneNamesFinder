@@ -45,4 +45,10 @@ EG -
 
 This is the Details of the Android Emulator
 
+To get the Current Device Data Stored in Prefs use this
+
+    getDeviceDataInPref(activity: Activity)
+
+It will return a DeviceDetailsModel or Null Value
+
 Please Contribute to the Project by providing me with issues
