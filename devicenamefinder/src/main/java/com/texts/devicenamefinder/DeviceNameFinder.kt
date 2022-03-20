@@ -4,7 +4,6 @@ import android.app.Activity
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.os.Build
-import android.util.Log
 import androidx.core.database.getStringOrNull
 import java.io.File
 import java.io.FileOutputStream
@@ -81,7 +80,7 @@ class DeviceNameFinder : Activity() {
             Thread {
                 tries = 0
                 val phoneName = "like '%${customPhoneName}'"
-//                val phoneName = "like '%Redmi note 7'"
+//                val phoneName = "like '%motorola edge 5G UW (2021)'"
                 val fileName = "MySQLiteDB.sqlite"
                 val file = activity.getDatabasePath(fileName)
                 if (file.exists()) {
@@ -117,19 +116,24 @@ class DeviceNameFinder : Activity() {
                 val doQuery = doQuery(openOrCreateDatabase, phoneName, phoneName)
                 setDeviceDateToPref(activity, doQuery)
                 deviceDetailsListener.details(doQuery)
-                Log.d("texts", "getFinalDetails: A")
             } else {
-                Log.d("texts", "getFinalDetails: B")
                 deviceDetailsListener.details(getDeviceDataInPref(activity))
             }
         }
 
+        var tries1: Int = 0
         private fun doQuery(
             openOrCreateDatabase: SQLiteDatabase,
             queryParams: String,
             phoneName: String,
             replace: Boolean = false,
         ): DeviceDetailsModel? {
+            tries1++
+/*
+            if (tries1 == 10) {
+                return null
+            }
+*/
             var s =
                 "SELECT * FROM supported_devices_supported_devices where Model $queryParams or " +
                         "Device $queryParams or " +
@@ -156,23 +160,25 @@ class DeviceNameFinder : Activity() {
                         codeName = cursor.getStringOrNull(2)
                         curCount++
                     } else {
-                        if (commonName == cursor.getStringOrNull(1)?.lowercase()) {
+
+                        if (commonName.lowercase() == cursor.getStringOrNull(1)?.lowercase()) {
                             curCount++
                         }
                     }
                 }
                 if (curCount == count) {
+                    val s1 = "$brand ${"$commonName".replace("$brand ", "")}"
                     return DeviceDetailsModel(
                         brand,
                         commonName,
                         codeName,
                         modelName,
-                        "$brand $commonName"
+                        s1
                     )
                 }
 
                 val queryParams1 = phoneName.replace("%", "").replace("like", "")
-                cursor.close()
+                closeCursor(cursor)
                 var replace1 =
                     "SELECT * FROM supported_devices_supported_devices where \"Marketing Name\" like$queryParams1 or Model like$queryParams1"
 
@@ -194,7 +200,7 @@ class DeviceNameFinder : Activity() {
                     val modelName = cursor.getStringOrNull(3)
                     val commonName = cursor.getStringOrNull(1)
                     val codeName = cursor.getStringOrNull(2)
-                    cursor.close()
+                    closeCursor(cursor)
                     return if ("$commonName".contains("$brand ")) {
                         val s1 = "$brand ${"$commonName".replace("$brand ", "")}"
                         DeviceDetailsModel(brand, commonName, codeName, modelName, s1)
@@ -209,8 +215,12 @@ class DeviceNameFinder : Activity() {
                     }
                 }
             }
-            cursor.close()
+            closeCursor(cursor)
             return null
+        }
+
+        private fun closeCursor(cursor: Cursor) {
+//            cursor.close()
         }
 
     }
