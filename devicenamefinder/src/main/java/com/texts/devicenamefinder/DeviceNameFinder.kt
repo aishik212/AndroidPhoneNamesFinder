@@ -80,13 +80,13 @@ class DeviceNameFinder : Activity() {
             Thread {
                 tries = 0
                 val phoneName = "like '%${customPhoneName}'"
-//                val phoneName = "like '%motorola edge 5G UW (2021)'"
+//                val phoneName = "like '%P01Y'"
                 val fileName = "MySQLiteDB.sqlite"
                 val file = activity.getDatabasePath(fileName)
                 if (file.exists()) {
                     getFinalDetails(file, phoneName, deviceDetailsListener, forced, activity)
                 } else {
-                    val inputStream: InputStream = activity.assets.open("data.sqlite")
+                    val inputStream: InputStream = activity.assets.open("data_beta.sqlite")
                     val outputStream: OutputStream = FileOutputStream(file)
                     val buffer = ByteArray(1024 * 8)
                     var numOfBytesToRead: Int
@@ -135,7 +135,7 @@ class DeviceNameFinder : Activity() {
             }
 */
             var s =
-                "SELECT * FROM supported_devices_supported_devices where Model $queryParams or " +
+                "SELECT * FROM supported_devices2_supported_devices where Model $queryParams or " +
                         "Device $queryParams or " +
                         "\"Marketing Name\" $queryParams"
             if (replace) {
