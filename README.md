@@ -4,7 +4,7 @@ This Library is useful to get the device name of the phone the user is using, in
 name  
 or any other kind of names this library aims at generating the most perfect name possible
 
-Add it in your root build.gradle at the end of repositories:```css
+Add it in your root build.gradle at the end of repositories:```
 
 	allprojects {
 		repositories {
