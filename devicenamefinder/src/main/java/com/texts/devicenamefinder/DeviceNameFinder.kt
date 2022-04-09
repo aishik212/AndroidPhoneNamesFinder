@@ -80,13 +80,17 @@ class DeviceNameFinder : Activity() {
             Thread {
                 tries = 0
                 val phoneName = "like '%${customPhoneName}'"
-//                val phoneName = "like '%P01Y'"
+//                val phoneName = "like '%JKM-LX1'"
                 val fileName = "MySQLiteDB.sqlite"
                 val file = activity.getDatabasePath(fileName)
                 if (file.exists()) {
-                    getFinalDetails(file, phoneName, deviceDetailsListener, forced, activity)
+                    if (BuildConfig.DEBUG) {
+                        getFinalDetails(file, phoneName, deviceDetailsListener, true, activity)
+                    } else {
+                        getFinalDetails(file, phoneName, deviceDetailsListener, forced, activity)
+                    }
                 } else {
-                    val inputStream: InputStream = activity.assets.open("data_beta.sqlite")
+                    val inputStream: InputStream = activity.assets.open("data.sqlite")
                     val outputStream: OutputStream = FileOutputStream(file)
                     val buffer = ByteArray(1024 * 8)
                     var numOfBytesToRead: Int
@@ -135,7 +139,7 @@ class DeviceNameFinder : Activity() {
             }
 */
             var s =
-                "SELECT * FROM supported_devices2_supported_devices where Model $queryParams or " +
+                "SELECT * FROM supported_devices_supported_devices where Model $queryParams or " +
                         "Device $queryParams or " +
                         "\"Marketing Name\" $queryParams"
             if (replace) {
@@ -152,6 +156,7 @@ class DeviceNameFinder : Activity() {
                 var curCount = 0
                 var modelName: String? = null
                 var codeName: String? = null
+
                 while (cursor.moveToNext()) {
                     if (commonName == null) {
                         brand = cursor.getStringOrNull(0)
@@ -160,14 +165,37 @@ class DeviceNameFinder : Activity() {
                         codeName = cursor.getStringOrNull(2)
                         curCount++
                     } else {
-
-                        if (commonName.lowercase() == cursor.getStringOrNull(1)?.lowercase()) {
+                        if (commonName.lowercase().replace(" ", "") == cursor.getStringOrNull(1)
+                                ?.lowercase()?.replace(" ", "")
+                        ) {
                             curCount++
+                        } else {
+                            var common = 0
+                            var length = commonName.length
+                            val toString = cursor.getStringOrNull(1)
+                            if (toString != null && toString.length == length) {
+                                while (length != 0) {
+                                    if (commonName[length - 1] == toString[length - 1]
+                                    ) {
+                                        common++
+                                    }
+                                    length--
+                                }
+                            }
+                            if (common - commonName.length < 3) {
+                                curCount++
+                            }
                         }
                     }
                 }
                 if (curCount == count) {
-                    val s1 = "$brand ${"$commonName".replace("$brand ", "")}"
+                    val s1 =
+                        "$brand ${
+                            "${commonName?.lowercase()}".replace(
+                                "${brand?.lowercase()} ",
+                                ""
+                            )
+                        }"
                     return DeviceDetailsModel(
                         brand,
                         commonName,
@@ -220,7 +248,7 @@ class DeviceNameFinder : Activity() {
         }
 
         private fun closeCursor(cursor: Cursor) {
-//            cursor.close()
+            cursor.close()
         }
 
     }
