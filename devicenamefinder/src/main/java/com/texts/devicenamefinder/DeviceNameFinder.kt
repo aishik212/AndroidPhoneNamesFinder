@@ -38,6 +38,9 @@ class DeviceNameFinder : Activity() {
         private fun hasDeviceDataInPref(
             activity: Activity,
         ): Boolean {
+            if (BuildConfig.DEBUG) {
+                return false
+            }
             val sharedPreferences = activity.getSharedPreferences(activity.packageName, 0)
             if (sharedPreferences.contains("calculatedName")
                 and
@@ -80,7 +83,7 @@ class DeviceNameFinder : Activity() {
             Thread {
                 tries = 0
                 val phoneName = "like '%${customPhoneName}'"
-//                val phoneName = "like '%JKM-LX1'"
+//                val phoneName = "like '%TFY-LX1'"
                 val fileName = "MySQLiteDB.sqlite"
                 val file = activity.getDatabasePath(fileName)
                 if (file.exists()) {
@@ -139,7 +142,7 @@ class DeviceNameFinder : Activity() {
             }
 */
             var s =
-                "SELECT * FROM supported_devices_supported_devices where Model $queryParams or " +
+                "SELECT * FROM supported_devices2_supported_devices where Model $queryParams or " +
                         "Device $queryParams or " +
                         "\"Marketing Name\" $queryParams"
             if (replace) {
@@ -156,7 +159,6 @@ class DeviceNameFinder : Activity() {
                 var curCount = 0
                 var modelName: String? = null
                 var codeName: String? = null
-
                 while (cursor.moveToNext()) {
                     if (commonName == null) {
                         brand = cursor.getStringOrNull(0)
@@ -208,16 +210,16 @@ class DeviceNameFinder : Activity() {
                 val queryParams1 = phoneName.replace("%", "").replace("like", "")
                 closeCursor(cursor)
                 var replace1 =
-                    "SELECT * FROM supported_devices_supported_devices where \"Marketing Name\" like$queryParams1 or Model like$queryParams1"
+                    "SELECT * FROM supported_devices2_supported_devices where \"Marketing Name\" like$queryParams1 or Model like$queryParams1"
 
                 when (tries) {
                     0 -> {
                         replace1 =
-                            "SELECT * FROM supported_devices_supported_devices where \"Marketing Name\" like$queryParams1 or Model like$queryParams1"
+                            "SELECT * FROM supported_devices2_supported_devices where \"Marketing Name\" like$queryParams1 or Model like$queryParams1"
                     }
                     1 -> {
                         replace1 =
-                            "SELECT * FROM supported_devices_supported_devices where \"Marketing Name\" like$queryParams1"
+                            "SELECT * FROM supported_devices2_supported_devices where \"Marketing Name\" like$queryParams1"
                     }
                 }
                 tries++
