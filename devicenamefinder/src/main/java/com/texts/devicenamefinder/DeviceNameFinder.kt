@@ -86,6 +86,7 @@ class DeviceNameFinder : Activity() {
 //                val phoneName = "like '%TFY-LX1'"
                 val fileName = "MySQLiteDB.sqlite"
                 val file = activity.getDatabasePath(fileName)
+                file.delete()
                 if (file.exists()) {
                     if (BuildConfig.DEBUG) {
                         getFinalDetails(file, phoneName, deviceDetailsListener, true, activity)
@@ -141,8 +142,9 @@ class DeviceNameFinder : Activity() {
                 return null
             }
 */
+            val tableName = "supported_devices"
             var s =
-                "SELECT * FROM supported_devices2_supported_devices where Model $queryParams or " +
+                "SELECT * FROM $tableName where Model $queryParams or " +
                         "Device $queryParams or " +
                         "\"Marketing Name\" $queryParams"
             if (replace) {
@@ -210,16 +212,16 @@ class DeviceNameFinder : Activity() {
                 val queryParams1 = phoneName.replace("%", "").replace("like", "")
                 closeCursor(cursor)
                 var replace1 =
-                    "SELECT * FROM supported_devices2_supported_devices where \"Marketing Name\" like$queryParams1 or Model like$queryParams1"
+                    "SELECT * FROM $tableName where \"Marketing Name\" like$queryParams1 or Model like$queryParams1"
 
                 when (tries) {
                     0 -> {
                         replace1 =
-                            "SELECT * FROM supported_devices2_supported_devices where \"Marketing Name\" like$queryParams1 or Model like$queryParams1"
+                            "SELECT * FROM $tableName where \"Marketing Name\" like$queryParams1 or Model like$queryParams1"
                     }
                     1 -> {
                         replace1 =
-                            "SELECT * FROM supported_devices2_supported_devices where \"Marketing Name\" like$queryParams1"
+                            "SELECT * FROM $tableName where \"Marketing Name\" like$queryParams1"
                     }
                 }
                 tries++
