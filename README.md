@@ -15,7 +15,7 @@ Add it in your root build.gradle at the end of repositories:```
 
 To Enable this Library first Add this line on the build.gradle(:app)
 
-	implementation 'com.github.aishik212:AndroidPhoneNamesFinder:v1.0.7'
+	implementation 'com.github.aishik212:AndroidPhoneNamesFinder:v1.0.9'
 
 Use this code to get the device name
 

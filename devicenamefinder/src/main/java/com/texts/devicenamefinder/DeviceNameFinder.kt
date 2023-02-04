@@ -4,6 +4,7 @@ import android.app.Activity
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.os.Build
+import android.util.Log
 import androidx.core.database.getStringOrNull
 import java.io.File
 import java.io.FileOutputStream
@@ -83,31 +84,51 @@ class DeviceNameFinder : Activity() {
             Thread {
                 tries = 0
                 val phoneName = "like '%${customPhoneName}'"
-//                val phoneName = "like '%TFY-LX1'"
+                Log.d("texts", "getPhoneValues: " + phoneName)
+//                val phoneName = "like '%X625D'"
                 val fileName = "MySQLiteDB.sqlite"
                 val file = activity.getDatabasePath(fileName)
                 file.delete()
-                if (file.exists()) {
-                    if (BuildConfig.DEBUG) {
-                        getFinalDetails(file, phoneName, deviceDetailsListener, true, activity)
+                if (phoneName.contains("sdk_gphone")) {
+                    deviceDetailsListener.details(
+                        DeviceDetailsModel(
+                            "Emulator",
+                            "Emulator",
+                            "Emulator",
+                            "Emulator",
+                            "Emulator"
+                        )
+                    )
+                } else {
+                    if (file.exists()) {
+                        if (BuildConfig.DEBUG) {
+                            getFinalDetails(file, phoneName, deviceDetailsListener, true, activity)
+                        } else {
+                            getFinalDetails(
+                                file,
+                                phoneName,
+                                deviceDetailsListener,
+                                forced,
+                                activity
+                            )
+                        }
+
                     } else {
+                        val inputStream: InputStream = activity.assets.open("data.sqlite")
+                        val outputStream: OutputStream = FileOutputStream(file)
+                        val buffer = ByteArray(1024 * 8)
+                        var numOfBytesToRead: Int
+                        while (inputStream.read(buffer).also {
+                                numOfBytesToRead = it
+                            } > 0) outputStream.write(
+                            buffer,
+                            0,
+                            numOfBytesToRead
+                        )
+                        inputStream.close()
+                        outputStream.close()
                         getFinalDetails(file, phoneName, deviceDetailsListener, forced, activity)
                     }
-                } else {
-                    val inputStream: InputStream = activity.assets.open("data.sqlite")
-                    val outputStream: OutputStream = FileOutputStream(file)
-                    val buffer = ByteArray(1024 * 8)
-                    var numOfBytesToRead: Int
-                    while (inputStream.read(buffer).also {
-                            numOfBytesToRead = it
-                        } > 0) outputStream.write(
-                        buffer,
-                        0,
-                        numOfBytesToRead
-                    )
-                    inputStream.close()
-                    outputStream.close()
-                    getFinalDetails(file, phoneName, deviceDetailsListener, forced, activity)
                 }
             }.start()
 
@@ -142,7 +163,7 @@ class DeviceNameFinder : Activity() {
                 return null
             }
 */
-            val tableName = "supported_devices"
+            val tableName = "supported_devices_supported_devices"
             var s =
                 "SELECT * FROM $tableName where Model $queryParams or " +
                         "Device $queryParams or " +
