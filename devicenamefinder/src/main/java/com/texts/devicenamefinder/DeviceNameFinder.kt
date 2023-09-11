@@ -83,7 +83,7 @@ class DeviceNameFinder : Activity() {
             Thread {
                 tries = 0
                 val phoneName = "like '%${customPhoneName}'"
-//                val phoneName = "like '%X625D'"
+//                val phoneName = "like 'rubyplus'"
                 val fileName = "MySQLiteDB.sqlite"
                 val file = activity.getDatabasePath(fileName)
                 file.delete()
@@ -110,9 +110,8 @@ class DeviceNameFinder : Activity() {
                                 activity
                             )
                         }
-
                     } else {
-                        val inputStream: InputStream = activity.assets.open("data.sqlite")
+                        val inputStream: InputStream = activity.assets.open("data_beta.sqlite")
                         val outputStream: OutputStream = FileOutputStream(file)
                         val buffer = ByteArray(1024 * 8)
                         var numOfBytesToRead: Int
@@ -156,11 +155,11 @@ class DeviceNameFinder : Activity() {
             replace: Boolean = false,
         ): DeviceDetailsModel? {
             tries1++
-/*
-            if (tries1 == 10) {
-                return null
-            }
-*/
+            /*
+                        if (tries1 == 10) {
+                            return null
+                        }
+            */
             val tableName = "supported_devices_supported_devices"
             var s =
                 "SELECT * FROM $tableName where Model $queryParams or " +
@@ -238,6 +237,7 @@ class DeviceNameFinder : Activity() {
                         replace1 =
                             "SELECT * FROM $tableName where \"Marketing Name\" like$queryParams1 or Model like$queryParams1"
                     }
+
                     1 -> {
                         replace1 =
                             "SELECT * FROM $tableName where \"Marketing Name\" like$queryParams1"
