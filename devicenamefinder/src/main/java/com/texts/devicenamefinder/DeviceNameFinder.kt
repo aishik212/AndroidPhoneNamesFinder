@@ -111,7 +111,7 @@ class DeviceNameFinder : Activity() {
                             )
                         }
                     } else {
-                        val inputStream: InputStream = activity.assets.open("data_beta.sqlite")
+                        val inputStream: InputStream = activity.assets.open("data.sqlite")
                         val outputStream: OutputStream = FileOutputStream(file)
                         val buffer = ByteArray(1024 * 8)
                         var numOfBytesToRead: Int
