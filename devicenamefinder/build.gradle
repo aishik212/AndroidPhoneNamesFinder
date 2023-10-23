@@ -46,7 +46,7 @@ afterEvaluate {
                 from components.release
                 groupId = 'com.texts'
                 artifactId = 'devicenamefinder'
-                groupId = '1.0.9'
+                groupId = '1.1.6'
             }
         }
     }

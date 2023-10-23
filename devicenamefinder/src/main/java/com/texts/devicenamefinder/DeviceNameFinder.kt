@@ -78,12 +78,21 @@ class DeviceNameFinder : Activity() {
             activity: Activity,
             deviceDetailsListener: DeviceDetailsListener,
             forced: Boolean = false,
-            customPhoneName: String = Build.MODEL,
+            customPhoneName: String? = null,
         ) =
             Thread {
                 tries = 0
-                val phoneName = "like '%${customPhoneName}'"
-//                val phoneName = "like 'rubyplus'"
+                val phoneName = if (customPhoneName != null) {
+                    val split = customPhoneName.split(" ")
+                    if (split.size > 1) {
+                        "like '%${split.subList(1, split.size).joinToString(" ")}'"
+                    } else {
+                        "like '%${customPhoneName}'"
+                    }
+                } else {
+                    "like '%${Build.MODEL}'"
+                }
+//              val phoneName = "like 'rubyplus'"
                 val fileName = "MySQLiteDB.sqlite"
                 val file = activity.getDatabasePath(fileName)
                 file.delete()
@@ -138,12 +147,18 @@ class DeviceNameFinder : Activity() {
             activity: Activity,
         ) {
             val openOrCreateDatabase = SQLiteDatabase.openOrCreateDatabase(file, null)
-            if (!forced && !hasDeviceDataInPref(activity)) {
+            if (forced) {
                 val doQuery = doQuery(openOrCreateDatabase, phoneName, phoneName)
                 setDeviceDateToPref(activity, doQuery)
                 deviceDetailsListener.details(doQuery)
             } else {
-                deviceDetailsListener.details(getDeviceDataInPref(activity))
+                if (hasDeviceDataInPref(activity)) {
+                    deviceDetailsListener.details(getDeviceDataInPref(activity))
+                } else {
+                    val doQuery = doQuery(openOrCreateDatabase, phoneName, phoneName)
+                    setDeviceDateToPref(activity, doQuery)
+                    deviceDetailsListener.details(doQuery)
+                }
             }
         }
 
