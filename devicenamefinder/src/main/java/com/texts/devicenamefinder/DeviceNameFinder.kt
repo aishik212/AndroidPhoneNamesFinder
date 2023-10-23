@@ -5,7 +5,6 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import androidx.core.database.getStringOrNull
-import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
@@ -57,7 +56,7 @@ class DeviceNameFinder : Activity() {
             return false
         }
 
-        fun getDeviceDataInPref(
+        fun GetDeviceDataInPref(
             activity: Activity,
         ): DeviceDetailsModel? {
             return if (hasDeviceDataInPref(activity)) {
@@ -93,9 +92,6 @@ class DeviceNameFinder : Activity() {
                     "like '%${Build.MODEL}'"
                 }
 //              val phoneName = "like 'rubyplus'"
-                val fileName = "MySQLiteDB.sqlite"
-                val file = activity.getDatabasePath(fileName)
-                file.delete()
                 if (phoneName.contains("sdk_gphone")) {
                     deviceDetailsListener.details(
                         DeviceDetailsModel(
@@ -107,57 +103,36 @@ class DeviceNameFinder : Activity() {
                         )
                     )
                 } else {
-                    if (file.exists()) {
-                        if (BuildConfig.DEBUG) {
-                            getFinalDetails(file, phoneName, deviceDetailsListener, true, activity)
-                        } else {
-                            getFinalDetails(
-                                file,
-                                phoneName,
-                                deviceDetailsListener,
-                                forced,
-                                activity
-                            )
-                        }
-                    } else {
-                        val inputStream: InputStream = activity.assets.open("data.sqlite")
-                        val outputStream: OutputStream = FileOutputStream(file)
-                        val buffer = ByteArray(1024 * 8)
-                        var numOfBytesToRead: Int
-                        while (inputStream.read(buffer).also {
-                                numOfBytesToRead = it
-                            } > 0) outputStream.write(
-                            buffer,
-                            0,
-                            numOfBytesToRead
-                        )
-                        inputStream.close()
-                        outputStream.close()
-                        getFinalDetails(file, phoneName, deviceDetailsListener, forced, activity)
-                    }
+                    getFinalDetails(
+                        phoneName,
+                        deviceDetailsListener,
+                        forced,
+                        activity
+                    )
                 }
             }.start()
 
         var tries = 0
+        var openOrCreateDatabase: SQLiteDatabase? = null
         private fun getFinalDetails(
-            file: File,
             phoneName: String,
             deviceDetailsListener: DeviceDetailsListener,
             forced: Boolean,
             activity: Activity,
         ) {
-            val openOrCreateDatabase = SQLiteDatabase.openOrCreateDatabase(file, null)
-            if (forced) {
-                val doQuery = doQuery(openOrCreateDatabase, phoneName, phoneName)
-                setDeviceDateToPref(activity, doQuery)
-                deviceDetailsListener.details(doQuery)
-            } else {
-                if (hasDeviceDataInPref(activity)) {
-                    deviceDetailsListener.details(getDeviceDataInPref(activity))
-                } else {
-                    val doQuery = doQuery(openOrCreateDatabase, phoneName, phoneName)
+            openOrCreateDatabase?.let {
+                if (forced) {
+                    val doQuery = doQuery(it, phoneName, phoneName)
                     setDeviceDateToPref(activity, doQuery)
                     deviceDetailsListener.details(doQuery)
+                } else {
+                    if (hasDeviceDataInPref(activity)) {
+                        deviceDetailsListener.details(GetDeviceDataInPref(activity))
+                    } else {
+                        val doQuery = doQuery(it, phoneName, phoneName)
+                        setDeviceDateToPref(activity, doQuery)
+                        deviceDetailsListener.details(doQuery)
+                    }
                 }
             }
         }
@@ -287,6 +262,37 @@ class DeviceNameFinder : Activity() {
 
         private fun closeCursor(cursor: Cursor) {
             cursor.close()
+        }
+
+        fun init(activity: Activity): Boolean {
+            if (openOrCreateDatabase != null) {
+                return true
+            } else {
+                try {
+                    val fileName = "MySQLiteDB.sqlite"
+                    val file = activity.getDatabasePath(fileName)
+                    file.delete()
+                    val inputStream: InputStream = activity.assets.open("data.sqlite")
+                    val outputStream: OutputStream = FileOutputStream(file)
+                    val buffer = ByteArray(1024 * 8)
+                    var numOfBytesToRead: Int
+                    while (inputStream.read(buffer).also {
+                            numOfBytesToRead = it
+                        } > 0) outputStream.write(
+                        buffer,
+                        0,
+                        numOfBytesToRead
+                    )
+                    inputStream.close()
+                    outputStream.close()
+                    if (openOrCreateDatabase == null) {
+                        openOrCreateDatabase = SQLiteDatabase.openOrCreateDatabase(file, null)
+                    }
+                    return true
+                } catch (e: Exception) {
+                    return false
+                }
+            }
         }
 
     }

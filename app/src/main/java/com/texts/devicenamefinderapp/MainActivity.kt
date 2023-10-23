@@ -11,13 +11,15 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        DeviceNameFinder.getPhoneValues(this, object : DeviceDetailsListener {
-            override fun details(doQuery: DeviceDetailsModel?) {
-                super.details(doQuery)
-                runOnUiThread {
-                    findViewById<TextView>(R.id.tv).text = doQuery?.calculatedName
+        if (DeviceNameFinder.init(this)) {
+            DeviceNameFinder.getPhoneValues(this, object : DeviceDetailsListener {
+                override fun details(doQuery: DeviceDetailsModel?) {
+                    super.details(doQuery)
+                    runOnUiThread {
+                        findViewById<TextView>(R.id.tv).text = doQuery?.calculatedName
+                    }
                 }
-            }
-        })
+            })
+        }
     }
 }

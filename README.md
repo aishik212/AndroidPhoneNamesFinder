@@ -20,6 +20,11 @@ To Enable this Library first Add this line on the build.gradle(:app)
 
 	implementation 'com.github.aishik212:AndroidPhoneNamesFinder:v1.1.0'
 
+Use this code at the mainactivity or in Application to initialise the DB
+
+    DeviceNameFinder.init(this)
+    It Return True or False, it can be checked while finding phone
+
 Use this code to get the device name
 
 	DeviceNameFinder.getPhoneValues(this, object : DeviceDetailsListener
